@@ -91,7 +91,7 @@ useEffect(()=>{
         <p className="px-5 py-3"><span className={`english ${lang&&'active'}`} onClick={()=>setLang(true)}>English</span> | <span className={`arabic ${!lang&&'active'}`} onClick={()=>setLang(false)}>العربيه</span></p>
       </div>
       {/* English */}
-      {lang && <div className="todoContainer w-50 mx-auto">
+      {lang && <div className="todoContainer col-md-6 col-10 mx-auto">
         <div>
           <div className="d-flex justify-content-center">
               <h1>Notes</h1>
@@ -191,7 +191,7 @@ useEffect(()=>{
 </div>
       </div>}
       {/* Arabic */}
-      {!lang && <div className="todoContainer w-50 mx-auto">
+      {!lang && <div className="todoContainer col-md-6 col-10 mx-auto">
         <div>
           <div className="d-flex justify-content-center">
           <p className="pt-4">باسمك</p>
