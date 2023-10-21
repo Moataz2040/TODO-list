@@ -72,3 +72,12 @@
 .active{
   color: gray;
 }
+.clickable > span{
+  cursor: pointer;
+}
+.iconOrange{
+  color: orange;
+}
+.iconYellow{
+  color: yellow;
+}

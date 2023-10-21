@@ -10,8 +10,9 @@ export default function Todo() {
   let [taskCheck, setTaskCheck] = useState(false);
   let [editTask,setEditTask] = useState(false);
   let[lang,setLang]= useState(true);
+  let[error,setError]=useState(false);
 
-
+// search
   function hideSearch(boolean) {
     setHide(boolean)
   }
@@ -29,16 +30,19 @@ export default function Todo() {
     let foundedItems = []
     seTaskList(foundedItems)
   };
-  
+  // -----------------------
   function display(newTask) {
     setProductList([...productList, { ...newTask, taskCheck: false,editTask:false }]);
         localStorage.setItem("productList",JSON.stringify([...productList, { ...newTask, taskCheck: false,editTask:false }]));
   }
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (newTaskName && newTaskImportance) {
+    if (newTaskName !== ' ' && newTaskImportance !== ' ') {
       display({ newTaskName, newTaskImportance });
       clearSearch()
+      console.log(newTaskName);
+    }else{
+      startError(true)
     }
   };
   const handleChange = (index) => {
@@ -46,6 +50,7 @@ export default function Todo() {
     updatedProductList[index].taskCheck = !updatedProductList[index].taskCheck;
     setProductList(updatedProductList);
   };
+  // Editing
   const editingTask = (index) => {
     const updatedProductList = [...productList];
     updatedProductList[index].editTask = !updatedProductList[index].editTask;
@@ -61,8 +66,9 @@ const updateTask = (index) => {
   updatedProductList[index].editTask = false;
   setProductList(updatedProductList);
   localStorage.setItem("productList",JSON.stringify(updatedProductList));
-
 };
+// =====================
+// remove
 const removeTask = (index) => {
   const updatedProductList = [...productList];
   updatedProductList.splice(index,1)
@@ -70,6 +76,39 @@ const removeTask = (index) => {
   localStorage.setItem("productList",JSON.stringify(updatedProductList));
   clearSearch()
 };
+// ====================
+// filter
+const filtering = (filter)=>{
+  if(filter === "All"){
+    seTaskList(productList);
+  }else if(filter === "Pending"){
+    clearSearch()
+    const tasksPending = productList.filter((task)=>!task.taskCheck)
+    console.log(tasksPending);
+    if (tasksPending < 0) {
+      setProductList(tasksPending)
+    }else{
+      seTaskList(tasksPending);
+    }
+  }else if(filter === "Completed"){
+    clearSearch()
+    const tasksCompleted = productList.filter((task)=>task.taskCheck)
+    console.log(tasksCompleted);
+    if (tasksCompleted < 0) {
+      setProductList(tasksCompleted)
+    }else{
+      seTaskList(tasksCompleted);
+    }
+  }
+}
+// ==========
+// error
+const startError = (boolean)=>{
+ setError(boolean)
+}
+
+
+// 
   function start() {
     if(localStorage.getItem("productList") == null){
       productList = []
@@ -81,7 +120,7 @@ useEffect(()=>{
   start()
 },[])
   return (<>
-    <div>
+    <div className='pb-5'>
     <nav className="navbar navbar-dark bg-dark">
         <div className="container-fluid text-center">
           <h5 className="text-white mx-auto">Site Title</h5>
@@ -104,17 +143,21 @@ useEffect(()=>{
           <i className="fa-solid fa-list-ul iconList"></i>
       </div>
       <div className="lang d-flex justify-content-start">
-        <p className="px-5 py-3"><span className="px-2">All</span> | <span className="px-2">Pending</span> | <span className="px-2">Completed</span></p>
+        <p className="px-5 py-3 clickable"><span className="px-2" onClick={()=>filtering("All")}>All</span> | <span className="px-2" onClick={()=>filtering("Pending")}>Pending</span> | <span className="px-2" onClick={()=>filtering("Completed")}>Completed</span></p>
       </div>
       <div className="formContainer" id='formTotal'>
         {(taskList.length < 1)?productList?.map((product,index)=> <>
-          {!product.editTask && <div key={index} className="border border-1 p-2">
+          {!product.editTask && <div key={index} className={`border border-1 p-2 ${product.taskCheck?'checked':'unchecked'}`}>
         <div className="d-flex justify-content-between align-items-center">
         <div className="form-check">
     <input className="form-check-input" type="checkbox" value="" id="flexCheckChecked" onChange={()=>handleChange(index)}  checked={product.taskCheck}/>
     <label className={`form-check-label ${product.taskCheck && 'check'}`} htmlFor="flexCheckChecked" checked={product.taskCheck}>
       {product.newTaskName} 
     </label>
+    {product.newTaskImportance == "high" && <i className="fa-regular fa-bookmark text-danger ms-2"></i>}
+    {product.newTaskImportance == "medium" && <i className="fa-regular fa-bookmark iconOrange ms-2"></i>}
+    {product.newTaskImportance == "low" && <i className="fa-regular fa-bookmark iconYellow ms-2"></i>}
+    
       </div>
       <div className="">
       <button type="button" className="btn btn-outline-dark me-3" onClick={()=>editingTask(index)}>Edit</button>
@@ -135,7 +178,7 @@ useEffect(()=>{
         
         
         </>
-        
+        // search
     ):taskList?.map((product,index)=> <>
     {!product.editTask && <div key={index} className="border border-1 p-2">
   <div className="d-flex justify-content-between align-items-center">
@@ -144,6 +187,9 @@ useEffect(()=>{
 <label className={`form-check-label ${product.taskCheck && 'check'}`} htmlFor="flexCheckChecked" checked={product.taskCheck}>
 {product.newTaskName} 
 </label>
+{product.newTaskImportance == "high" && <i className="fa-regular fa-bookmark text-danger ms-2"></i>}
+    {product.newTaskImportance == "medium" && <i className="fa-regular fa-bookmark iconOrange ms-2"></i>}
+    {product.newTaskImportance == "low" && <i className="fa-regular fa-bookmark iconYellow ms-2"></i>}
 </div>
 <div className="">
 <button type="button" className="btn btn-outline-dark me-3" onClick={()=>editingTask(index)}>Edit</button>
@@ -171,10 +217,10 @@ useEffect(()=>{
       <div className="">
       <form onSubmit={handleSubmit} className="d-flex justify-content-between align-items-center">
       <div className="w-75">
-      <input type="text"  className="form-control" id="inputTask" onChange={(e)=>setNewTaskName(e.target.value)} required/>
+      <input type="text"  className="form-control" id="inputTask" onChange={(e)=>setNewTaskName(e.target.value)} onClick={()=>startError(false)}/>
     </div>
     <div className="w-auto d-flex">
-    <select className="form-select me-2" aria-label="select" onChange={(e)=>setNewTaskImportance(e.target.value)}>
+    <select className="form-select me-2" aria-label="select" onChange={(e)=>setNewTaskImportance(e.target.value)} onClick={()=>startError(false)}>
   <option value=" ">select</option>
   <option value="high">high</option>
   <option value="medium">medium</option>
@@ -185,10 +231,11 @@ useEffect(()=>{
       </form>
           </div>
       </div>
-      <div className="alert alert-danger py-3 mt-3" role="alert">
+      {error && <div className="alert alert-danger py-3 mt-3" role="alert">
       <i className="fa-solid fa-triangle-exclamation pe-2"></i>
-  todo text must not be empty ,priority must be selected
-</div>
+          todo text must not be empty ,priority must be selected
+      </div>}
+      
       </div>}
       {/* Arabic */}
       {!lang && <div className="todoContainer col-md-6 col-10 mx-auto">
@@ -204,7 +251,7 @@ useEffect(()=>{
           {hide && <i className="fa-solid fa-magnifying-glass search iconSearchArabic"></i>}
       </div>
       <div className="lang d-flex justify-content-end">
-        <p className="px-5 py-3"><span className="px-2">الكل</span> | <span className="px-2">قيد الانتظار</span> | <span className="px-2">المكتمل</span></p>
+        <p className="px-5 py-3 clickable"><span className="px-2" onClick={()=>filtering("All")}>الكل</span> | <span className="px-2" onClick={()=>filtering("Pending")}>قيد الانتظار</span> | <span className="px-2" onClick={()=>filtering("Completed")}>المكتمل</span></p>
       </div>
       <div className="formContainer" id='formTotal'>
         {(taskList.length < 1)?productList?.map((product,index)=> <>
@@ -219,6 +266,9 @@ useEffect(()=>{
     <label className={`form-check-label ${product.taskCheck && 'check'}`} htmlFor="flexCheckChecked" checked={product.taskCheck}>
       {product.newTaskName} 
     </label>
+    {product.newTaskImportance == "high" && <i className="fa-regular fa-bookmark text-danger me-2"></i>}
+    {product.newTaskImportance == "medium" && <i className="fa-regular fa-bookmark iconOrange me-2"></i>}
+    {product.newTaskImportance == "low" && <i className="fa-regular fa-bookmark iconYellow me-2"></i>}
       </div>
       
         </div>
@@ -236,7 +286,7 @@ useEffect(()=>{
         
         
         </>
-        
+        // search
     ):taskList?.map((product,index)=> <>
     {!product.editTask && <div key={index} className="border border-1 p-2">
   <div className="d-flex justify-content-between align-items-center">
@@ -249,6 +299,9 @@ useEffect(()=>{
 <label className={`form-check-label ${product.taskCheck && 'check'}`} htmlFor="flexCheckChecked" checked={product.taskCheck}>
 {product.newTaskName} 
 </label>
+{product.newTaskImportance == "high" && <i className="fa-regular fa-bookmark text-danger ms-2"></i>}
+    {product.newTaskImportance == "medium" && <i className="fa-regular fa-bookmark iconOrange ms-2"></i>}
+    {product.newTaskImportance == "low" && <i className="fa-regular fa-bookmark iconYellow ms-2"></i>}
 </div>
   </div>
       </div>}
@@ -272,10 +325,10 @@ useEffect(()=>{
       <div className="">
       <form onSubmit={handleSubmit} className="d-flex justify-content-between align-items-center">
       <div className="w-75">
-      <input type="text"  className="form-control" id="inputTask" onChange={(e)=>setNewTaskName(e.target.value)} required/>
+      <input type="text"  className="form-control" id="inputTask" onChange={(e)=>setNewTaskName(e.target.value)} onClick={()=>startError(false)}/>
     </div>
     <div className="w-auto d-flex">
-    <select className="form-select me-2" aria-label="select" onChange={(e)=>setNewTaskImportance(e.target.value)}>
+    <select className="form-select me-2" aria-label="select" onChange={(e)=>setNewTaskImportance(e.target.value)} onClick={()=>startError(false)}>
   <option value=" ">اختر</option>
   <option value="high">عالي</option>
   <option value="medium">متوسط</option>
@@ -286,10 +339,10 @@ useEffect(()=>{
       </form>
           </div>
       </div>
-      <div className="alert alert-danger py-3 mt-3 rtl-label" role="alert">
+         {error && <div className="alert alert-danger py-3 mt-3 rtl-label" role="alert">
       <i className="fa-solid fa-triangle-exclamation ps-2"></i>
       يجب ألا يكون نص المهام فارغًا، ويجب تحديد الأولوية
-</div>
+      </div>}
       </div>}
       
     </div>
