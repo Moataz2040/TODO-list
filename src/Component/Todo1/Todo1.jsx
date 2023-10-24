@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styles from "./Todo1.module.css";
 export default function Todo() {
@@ -7,6 +7,7 @@ export default function Todo() {
   let [newTaskImportance, setNewTaskImportance] = useState(" ");
   let [productList, setProductList] = useState([]);
   let [taskList, setTaskList] = useState([]);
+  let [sortList, setSortList] = useState([]);
   let [taskCheck, setTaskCheck] = useState(false);
   let [editTask, setEditTask] = useState(false);
   let [lang, setLang] = useState(true);
@@ -41,6 +42,10 @@ export default function Todo() {
       ...productList,
       { ...newTask, taskCheck: false, editTask: false },
     ]);
+    setSortList([
+      ...productList,
+      { ...newTask, taskCheck: false, editTask: false },
+    ]);
     localStorage.setItem(
       "productList",
       JSON.stringify([
@@ -69,6 +74,7 @@ export default function Todo() {
     const updatedProductList = [...productList];
     updatedProductList[index].editTask = !updatedProductList[index].editTask;
     setProductList(updatedProductList);
+    console.log("hhhh");
   };
   const handleEditTaskName = (value, index) => {
     const updatedProductList = [...productList];
@@ -81,25 +87,28 @@ export default function Todo() {
     setProductList(updatedProductList);
     localStorage.setItem("productList", JSON.stringify(updatedProductList));
     allTasksUpdated.push(updatedProductList[index]);
-    localStorage.setItem("allTasksUpdated", JSON.stringify(allTasksUpdated));
+        localStorage.setItem("allTasksUpdated", JSON.stringify(allTasksUpdated));
   };
   // =====================
   // remove
   const removeTask = (index) => {
     const updatedProductList = [...productList];
     updatedProductList.splice(index, 1);
+    allTasksUpdated.splice(index, 1);
     setProductList(updatedProductList);
     localStorage.setItem("productList", JSON.stringify(updatedProductList));
+    localStorage.setItem("allTasksUpdated", JSON.stringify(allTasksUpdated));
     clearSearch();
   };
   // ====================
   // filter
   const filtering = (filter) => {
     if (filter === "All") {
-      setTaskList(productList);
+      clearSearch();
+      setProductList(sortList);
     } else if (filter === "Pending") {
       clearSearch();
-      const tasksPending = productList.filter((task) => !task.taskCheck);
+      const tasksPending = sortList.filter((task) => !task.taskCheck);
       console.log(tasksPending);
       if (tasksPending < 0) {
         setProductList(tasksPending);
@@ -108,7 +117,7 @@ export default function Todo() {
       }
     } else if (filter === "Completed") {
       clearSearch();
-      const tasksCompleted = productList.filter((task) => task.taskCheck);
+      const tasksCompleted = sortList.filter((task) => task.taskCheck);
       console.log(tasksCompleted);
       if (tasksCompleted < 0) {
         setProductList(tasksCompleted);
@@ -121,21 +130,22 @@ export default function Todo() {
   // ==========
   // sorting
   const sorting = (sort) => {
-    if (sort === "Date last added") {
-      setTaskList(productList.reverse());
-    } else if (sort === "Origin") {
-      setTaskList(productList);
-      console.log(productList);
+    if (sort === "Origin") {
+      const originTasks = [...sortList];
+      setProductList(originTasks);
+    } else if (sort === "Date last added") {
+      const addedTasks = [...sortList].reverse();
+      setProductList(addedTasks);
     } else if (sort === "Priority") {
-      const tasksHigh = productList.filter((task) => task.newTaskImportance === "high");
-      const tasksMedium = productList.filter((task) => task.newTaskImportance === "medium");
-      const tasksLow = productList.filter((task) => task.newTaskImportance === "low");
+      const tasksHigh = sortList.filter((task) => task.newTaskImportance === "high");
+      const tasksMedium = sortList.filter((task) => task.newTaskImportance === "medium");
+      const tasksLow = sortList.filter((task) => task.newTaskImportance === "low");
       const totalImportance =tasksHigh.concat(tasksMedium,tasksLow)
-      setTaskList(totalImportance);
+      setProductList(totalImportance);
       
     }else if (sort === "Date last updated") {
       if(allTasksUpdated.length > 0){
-        setTaskList(allTasksUpdated);      
+        setProductList(allTasksUpdated);      
       }
     }
   };
@@ -150,7 +160,8 @@ export default function Todo() {
     if (localStorage.getItem("productList") == null) {
       productList = [];
     } else {
-      setProductList(JSON.parse(localStorage.getItem("productList")));
+      setSortList(JSON.parse(localStorage.getItem("productList")))
+      setProductList(JSON.parse(localStorage.getItem("productList")))
     }
     if (localStorage.getItem("allTasksUpdated") == null) {
     } else {
@@ -160,7 +171,7 @@ export default function Todo() {
   }
   useEffect(() => {
     start();
-  }, [taskList]);
+  }, []);
   return (
     <>
       <div className="pb-5">
@@ -216,7 +227,7 @@ export default function Todo() {
             <li className="dropdown-item dropdownIcon" onClick={()=>sorting("Origin")}>Origin</li>
             <li className="dropdown-item dropdownIcon" onClick={()=>sorting("Date last added")}>Date last added</li>
             <li className="dropdown-item dropdownIcon" onClick={()=>sorting("Priority")}>Priority</li>
-            <li className="dropdown-item dropdownIcon" onClick={()=>sorting("Date last updated")}>Date last updated</li>
+            <li className="dropdown-item dropdownIcon" onClick={()=>sorting("Date last updated")}>All updates</li>
           </ul>
         </li>
             </div>
@@ -459,7 +470,7 @@ export default function Todo() {
                 <h1>ملاحظات</h1>
               </div>
             </div>
-            <div className="form-group mt-5 d-flex">
+            <div className="form-group mt-5 d-flex align-items-center">
             <li className="nav-item dropdown">
           <i className="nav-link fa-solid fa-list-ul iconList iconListArapic"  id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           </i>
@@ -468,7 +479,7 @@ export default function Todo() {
             <li className="dropdown-item dropdownIcon rtl-label" onClick={()=>sorting("Origin")}>الاصل</li>
             <li className="dropdown-item dropdownIcon rtl-label" onClick={()=>sorting("Date last added")}>اخر اضافه</li>
             <li className="dropdown-item dropdownIcon rtl-label" onClick={()=>sorting("Priority")}>الاهميه</li>
-            <li className="dropdown-item dropdownIcon rtl-label" onClick={()=>sorting("Date last updated")}>اخر تعديل</li>
+            <li className="dropdown-item dropdownIcon rtl-label" onClick={()=>sorting("Date last updated")}>كل التعديلات</li>
           </ul>
         </li>
               <input
