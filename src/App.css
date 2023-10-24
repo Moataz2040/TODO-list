@@ -81,3 +81,9 @@
 .iconYellow{
   color: yellow;
 }
+.nav-item{
+  list-style: none;
+}
+.dropdownIcon{
+  cursor: pointer;
+}
